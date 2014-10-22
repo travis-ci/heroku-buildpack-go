@@ -63,6 +63,10 @@ elif test -d $build/Godeps
 then
     name=$(<$build/Godeps/Godeps.json jq -r .ImportPath)
     ver=$(<$build/Godeps/Godeps.json jq -r .GoVersion)
+elif test -f $build/Deps
+then
+    name=$(<$build/Deps jq -r .ImportPath)
+    ver=$(<$build/Deps jq -r .GoVersion)
 elif test -f $build/.godir
 then
     name=$(cat $build/.godir)
@@ -105,11 +109,6 @@ PATH=$GOROOT/bin:$PATH
 
 if ! (test -d $build/Godeps || (which hg >/dev/null && which bzr >/dev/null))
 then
-    echo
-    echo "       Tired of waiting for bzr and hg?"
-    echo "       Try github.com/kr/godep for faster deploys."
-    echo
-
     echo -n "       Installing Virtualenv..."
     virtualenv --python $python --distribute --never-download --prompt='(venv) ' $venv > /dev/null 2>&1
     . $venv/bin/activate > /dev/null 2>&1
@@ -156,6 +155,12 @@ if test -e $build/Godeps
 then
     echo "-----> Running: godep go install ${FLAGS[@]} ./..."
     godep go install "${FLAGS[@]}" ./...
+elif test -e $build/Deps
+then
+    echo "-----> Running: deppy restore"
+    deppy restore
+    echo "-----> Running: deppy go install ${FLAGS[@]} ./..."
+    deppy go install "${FLAGS[@]}" ./...
 else
     echo "-----> Running: go get ${FLAGS[@]} ./..."
     go get "${FLAGS[@]}" ./...
