@@ -55,6 +55,7 @@ export_env_dir() {
 mkdir -p "$1" "$2"
 build=$(cd "$1/" && pwd)
 cache=$(cd "$2/" && pwd)
+gitdir=$(cd "$GIT_DIR" && pwd)
 buildpack=$(dirname $(dirname $0))
 arch=$(uname -m|tr A-Z a-z)
 if test $arch = x86_64
@@ -160,7 +161,6 @@ then
     FLAGS=(${FLAGS[@]} -ldflags "-X $git_describe_symbol $git_describe")
 fi
 
-export ORIG_GIT_DIR="$GIT_DIR"
 unset GIT_DIR # unset git dir or it will mess with goinstall
 cd $p
 if test -e $build/Godeps
@@ -174,7 +174,7 @@ then
     if test -e $build/Makefile && make -n -p | grep ^buildpack: >/dev/null 2>&1
     then
         # re-set GIT_DIR so that git describe works, if needed
-        export GIT_DIR="$ORIG_GIT_DIR"
+        export GIT_DIR="$gitdir"
         echo "-----> Running: make buildpack (GIT_DIR=$GIT_DIR)"
         make buildpack | indent
         unset GIT_DIR
