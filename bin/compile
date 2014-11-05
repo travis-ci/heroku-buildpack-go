@@ -35,6 +35,23 @@ urlfor() {
     esac
 }
 
+indent() {
+    sed -u 's/^/       /'
+}
+
+export_env_dir() {
+  env_dir=$1
+  whitelist_regex=${2:-''}
+  blacklist_regex=${3:-'^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH)$'}
+  if [ -d "$env_dir" ]; then
+    for e in $(ls $env_dir); do
+      echo "$e" | grep -E "$whitelist_regex" | grep -qvE "$blacklist_regex" &&
+      export "$e=$(cat $env_dir/$e)"
+      :
+    done
+  fi
+}
+
 mkdir -p "$1" "$2"
 build=$(cd "$1/" && pwd)
 cache=$(cd "$2/" && pwd)
@@ -132,13 +149,7 @@ env_dir="$3"
 if [ -d "$env_dir" ]
 then
     ln -sfn $build /app/code
-    for cgo_opt in CGO_CFLAGS CGO_CPPFLAGS CGO_CXXFLAGS CGO_LDFLAGS
-    do
-        if [ -f "$env_dir/$cgo_opt" ]
-        then
-            export "$cgo_opt=$(cat "$env_dir/$cgo_opt")"
-        fi
-    done
+    export_env_dir "$env_dir"
 fi
 
 FLAGS=(-tags heroku)
@@ -154,22 +165,22 @@ cd $p
 if test -e $build/Godeps
 then
     echo "-----> Running: godep go install ${FLAGS[@]} ./..."
-    godep go install "${FLAGS[@]}" ./...
+    godep go install "${FLAGS[@]}" ./... | indent
 elif test -e $build/Deps
 then
     echo "-----> Running: deppy restore"
-    deppy restore
+    deppy restore | indent
     if test -e $build/Makefile && make -n -p | grep ^buildpack: >/dev/null 2>&1
     then
         echo "-----> Running: make buildpack"
-        make buildpack
+        make buildpack | indent
     else
         echo "-----> Running: deppy go install ${FLAGS[@]} ./..."
-        deppy go install "${FLAGS[@]}" ./...
+        deppy go install "${FLAGS[@]}" ./... | indent
     fi
 else
     echo "-----> Running: go get ${FLAGS[@]} ./..."
-    go get "${FLAGS[@]}" ./...
+    go get "${FLAGS[@]}" ./... | indent
 fi
 
 rm -rf $build/.heroku
