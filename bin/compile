@@ -161,7 +161,7 @@ then
     FLAGS=(${FLAGS[@]} -ldflags "-X $git_describe_symbol $git_describe")
 fi
 
-unset GIT_DIR # unset git dir or it will mess with goinstall
+export GIT_DIR="$gitdir" # set git dir to absolute path prior to cd'ing into $GOPATH/src/$name
 cd $p
 if test -e $build/Godeps
 then
@@ -173,11 +173,8 @@ then
     deppy restore | indent
     if test -e $build/Makefile && make -n -p | grep ^buildpack: >/dev/null 2>&1
     then
-        # re-set GIT_DIR so that git describe works, if needed
-        export GIT_DIR="$gitdir"
         echo "-----> Running: make buildpack (GIT_DIR=$GIT_DIR)"
         make buildpack | indent
-        unset GIT_DIR
     else
         echo "-----> Running: deppy go install ${FLAGS[@]} ./..."
         deppy go install "${FLAGS[@]}" ./... | indent
