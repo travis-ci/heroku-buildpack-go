@@ -175,7 +175,7 @@ then
     then
         # re-set GIT_DIR so that git describe works, if needed
         export GIT_DIR="$ORIG_GIT_DIR"
-        echo "-----> Running: make buildpack"
+        echo "-----> Running: make buildpack (GIT_DIR=$GIT_DIR)"
         make buildpack | indent
         unset GIT_DIR
     else
