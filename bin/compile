@@ -159,8 +159,14 @@ elif test -e $build/Deps
 then
     echo "-----> Running: deppy restore"
     deppy restore
-    echo "-----> Running: deppy go install ${FLAGS[@]} ./..."
-    deppy go install "${FLAGS[@]}" ./...
+    if test -e $build/Makefile
+    then
+        echo "-----> Running: make"
+        make
+    else
+        echo "-----> Running: deppy go install ${FLAGS[@]} ./..."
+        deppy go install "${FLAGS[@]}" ./...
+    fi
 else
     echo "-----> Running: go get ${FLAGS[@]} ./..."
     go get "${FLAGS[@]}" ./...
