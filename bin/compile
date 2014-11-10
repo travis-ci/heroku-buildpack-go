@@ -155,7 +155,7 @@ fi
 
 if test -f "$env_dir/DUMPENV"
 then
-    echo -n "-----> Running: env | sort"
+    echo "-----> Running: env | sort"
     env | sort | indent
 fi
 
