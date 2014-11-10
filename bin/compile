@@ -153,6 +153,12 @@ then
     export_env_dir "$env_dir"
 fi
 
+if test -f "$env_dir/DUMPENV"
+then
+    echo -n "-----> Running: env | sort"
+    env | sort | indent
+fi
+
 FLAGS=(-tags heroku)
 if test -f "$env_dir/GO_GIT_DESCRIBE_SYMBOL"
 then
