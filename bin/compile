@@ -171,8 +171,10 @@ then
         make buildpack | indent
         unset GIT_DIR
     else
-        echo "-----> Running: gb build"
+        export GIT_DIR="$ORIG_GIT_DIR"
+        echo "-----> Running: gb build (GIT_DIR=$GIT_DIR)"
         gb build
+        unset GIT_DIR
     fi
 elif test -e $build/Deps
 then
