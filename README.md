@@ -1,101 +1,92 @@
 # Heroku Buildpack: Go
 
-This is a [Heroku buildpack][buildpack] for [Go][go].
+This is the [Heroku buildpack][buildpack] for [Go][go].
 
 ## Getting Started
 
+
 Follow the guide at
-<http://mmcgrana.github.com/2012/09/getting-started-with-go-on-heroku.html>.
+<https://devcenter.heroku.com/articles/getting-started-with-go>
 
 There's also a hello world sample app at
-<https://github.com/kr/go-heroku-example>.
+<https://github.com/heroku/go-getting-started> 
 
 ## Example
 
 ```
 $ ls -A1
-./.git
-./.godir
-./Procfile
-./web.go
+.git
+Godeps
+Procfile
+web.go
 
-$ heroku create -b https://github.com/kr/heroku-buildpack-go.git
+$ heroku create
+Creating polar-waters-4785...
 ...
 
 $ git push heroku master
 ...
 -----> Fetching custom git buildpack... done
 -----> Go app detected
------> Installing Go 1.0.3... done
-       Installing Virtualenv... done
-       Installing Mercurial... done
-       Installing Bazaar... done
------> Running: go get -tags heroku ./...
+-----> Installing go1.4.1... done
+-----> Running: godep go install -tags heroku ./...
 -----> Discovering process types
        Procfile declares types -> web
------> Compiled slug size: 1.0MB
------> Launching... done, v5
-       http://pure-sunrise-3607.herokuapp.com deployed to Heroku
+
+-----> Compressing... done, 1.6MB
+-----> Launching... done, v4
+       https://polar-waters-4785.herokuapp.com/ deployed to Heroku
 ```
 
-The buildpack will detect your repository as Go if it
-contains a `.go` file.
+This buildpack will detect your repository as Go if it contains a `.go` file.
 
-The buildpack adds a `heroku` [build constraint][build-constraint],
-to enable heroku-specific code. See the [App Engine build constraints article][app-engine-build-constraints]
-for more.
+This buildpack adds a `heroku` [build constraint][build-constraint], to enable
+heroku-specific code. See the [App Engine build constraints
+article][app-engine-build-constraints] for more.
 
 ## Hacking on this Buildpack
 
-To change this buildpack, fork it on GitHub. Push
-changes to your fork, then create a test app with
-`--buildpack YOUR_GITHUB_GIT_URL` and push to it. If you
+To change this buildpack, fork it on GitHub. Push changes to your fork, then
+create a test app with `--buildpack YOUR_GITHUB_GIT_URL` and push to it. If you
 already have an existing app you may use `heroku config:add
 BUILDPACK_URL=YOUR_GITHUB_GIT_URL` instead of `--buildpack`.
 
-[go]: http://golang.org/
-[buildpack]: http://devcenter.heroku.com/articles/buildpacks
-[quickstart]: http://mmcgrana.github.com/2012/09/getting-started-with-go-on-heroku.html
-[build-constraint]: http://golang.org/pkg/go/build/
-[app-engine-build-constraints]: http://blog.golang.org/2013/01/the-app-engine-sdk-and-workspaces-gopath.html
+## Godeps vs .godir
 
-## .godir and Godeps
+This buildpack supports the use of [godep][godep], which will be used to
+install the project and its vendored dependencies if a `Godeps/Godep.json`
+file exists. Otherwise this buildpack requires a file named `.godir` in the
+root of your project to determine the name of the project and will use the
+go toolchain to download dependencies.
 
-Early versions of this buildpack required users to
-create a `.godir` file in the root of the project,
-containing the application name in order to build the
-project. While using a `.godir` file is still supported,
-it has been deprecated in favor of using
-[godep](https://github.com/kr/godep) in your project to
-manage dependencies, and including the generated `Godep`
-directory in your git repository.
+See [Go Dependencies via Godep](https://devcenter.heroku.com/articles/go-dependencies-via-godep) for more.
 
 ## Using with cgo
 
 This buildpack supports building with C dependencies via
-[cgo](http://golang.org/cmd/cgo/). You can set config vars to specify
-CGO flags to, e.g., specify paths for vendored dependencies. E.g., to
-build [gopgsqldriver](https://github.com/jbarham/gopgsqldriver), add
-the config var `CGO_CFLAGS` with the value
-`-I/app/code/vendor/include/postgresql` and include the relevant
-Postgres header files in `vendor/include/postgresql/` in your app.
+[cgo][cgo]. You can set config vars to specify CGO flags
+to, e.g., specify paths for vendored dependencies. E.g., to build
+[gopgsqldriver](https://github.com/jbarham/gopgsqldriver), add the config var
+`CGO_CFLAGS` with the value `-I/app/code/vendor/include/postgresql` and include
+the relevant Postgres header files in `vendor/include/postgresql/` in your app.
 
-## Setting the version at build time
+## Passing a symbol (and optional string) to the linker
 
-If you set the `GO_GIT_DESCRIBE_SYMBOL` to the name of a
-string variable, it will be set at build time to the
-output of `git describe --tags --always`. This lets you
-access the commit id or tag in your app. For example, in
-your `main.go`:
+This buildpack supports the go [linker's][go-linker] ability (`-X symbol
+value`) to set the value of a string at link time. This can be done by setting
+`GO_LINKER_SYMBOL` and `GO_LINKER_VALUE` in the application's config before
+pushing code. If `GO_LINKER_SYMBOL` is set, but `GO_LINKER_VALUE` isn't set
+then `GO_LINKER_VALUE` defaults to [`$SOURCE_VERSION`][source-version].
 
-```go
-package main
+This can be used to embed the commit sha, or other build specific data directly
+into the compiled executable.
 
-var version string
-```
-
-To set this variable at build time, set the config var:
-
-```bash
-$ heroku set GO_GIT_DESCRIBE_SYMBOL=main.version
-```
+[go]: http://golang.org/
+[buildpack]: http://devcenter.heroku.com/articles/buildpacks
+[go-linker]: https://golang.org/cmd/ld/
+[godep]: https://github.com/tools/godep
+[quickstart]: http://mmcgrana.github.com/2012/09/getting-started-with-go-on-heroku.html
+[build-constraint]: http://golang.org/pkg/go/build/
+[app-engine-build-constraints]: http://blog.golang.org/2013/01/the-app-engine-sdk-and-workspaces-gopath.html
+[source-version]: https://devcenter.heroku.com/articles/buildpack-api#bin-compile
+[cgo]: http://golang.org/cmd/cgo/
