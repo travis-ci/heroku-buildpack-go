@@ -72,15 +72,14 @@ if ! test -f $cache/gimme ; then
   chmod +x $cache/gimme
 fi
 
-echo -n "       Selecting Go $ver..."
-eval "$($cache/gimme $ver)"
-
 mkdir -p $build/bin
 GOBIN=$build/bin export GOBIN
 GOROOT=$cache/$ver/go export GOROOT
 GOPATH=$build/.heroku/g export GOPATH
 PATH=$GOROOT/bin:$PATH
 
+echo -n "       Selecting Go $ver..."
+eval "$(GIMME_VERSION_PREFIX=$cache $cache/gimme $ver)"
 
 if ! (test -d $build/Godeps || (which hg >/dev/null && which bzr >/dev/null))
 then
