@@ -56,7 +56,7 @@ then
 elif test -f $build/vendor/manifest
 then
     name=$(echo src/*/*/* | head -1 | sed 's@src/@@')
-    ver=${GOVERSION:-1.4.2}
+    ver=${GOVERSION:-1.5}
 elif test -f $build/.godir
 then
     name=$(cat $build/.godir)
