@@ -72,6 +72,9 @@ if ! test -f $cache/gimme ; then
   chmod +x $cache/gimme
 fi
 
+# strip "go" prefix from version
+ver=${ver#go}
+
 mkdir -p $build/bin
 GOBIN=$build/bin export GOBIN
 GOROOT=$cache/$ver/go export GOROOT
